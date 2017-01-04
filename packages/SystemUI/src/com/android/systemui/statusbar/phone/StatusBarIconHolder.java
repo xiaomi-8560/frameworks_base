@@ -62,7 +62,11 @@ public class StatusBarIconHolder {
     @IntDef({
             TYPE_ICON,
             TYPE_MOBILE_NEW,
-            TYPE_WIFI_NEW
+            TYPE_WIFI_NEW,
+            TYPE_NETWORK_TRAFFIC
+
+    public static final int TYPE_NETWORK_TRAFFIC = 6;
+
     })
     @Retention(RetentionPolicy.SOURCE)
     @interface IconType {}
@@ -110,6 +114,13 @@ public class StatusBarIconHolder {
         return holder;
     }
 
+    /** */
+    public static StatusBarIconHolder fromNetworkTraffic() {
+        StatusBarIconHolder holder = new StatusBarIconHolder();
+        holder.mType = TYPE_NETWORK_TRAFFIC;
+        return holder;
+    }
+
     /**
      * Creates a new StatusBarIconHolder from a CallIndicatorIconState.
      */
@@ -147,6 +158,8 @@ public class StatusBarIconHolder {
             case TYPE_WIFI_NEW:
                 // The new pipeline controls visibilities via the view model and view binder, so
                 // this is effectively an unused return value.
+                return true;
+            case TYPE_NETWORK_TRAFFIC:
                 return true;
             default:
                 return true;
