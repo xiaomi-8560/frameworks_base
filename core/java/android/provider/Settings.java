@@ -5571,6 +5571,11 @@ public final class Settings {
         public static final String FINGERPRINT_WAKE_UNLOCK = "fingerprint_wake_unlock";
 
         /**
+         * @hide
+         */
+        public static final String BACK_GESTURE_HEIGHT = "back_gesture_height";
+
+        /**
          * Whether user can swap the order of the Alert Slider.
          * * Whether user can invert the order of the Alert Slider.
          * 0: Default
