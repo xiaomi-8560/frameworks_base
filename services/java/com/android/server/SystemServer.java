@@ -163,6 +163,7 @@ import com.android.server.os.NativeTombstoneManagerService;
 import com.android.server.os.SchedulingPolicyService;
 import com.android.server.people.PeopleService;
 import com.android.server.permission.access.AccessCheckingService;
+import com.android.server.pocket.PocketService;
 import com.android.server.pm.ApexManager;
 import com.android.server.pm.ApexSystemServiceInfo;
 import com.android.server.pm.BackgroundInstallControlService;
@@ -2576,6 +2577,10 @@ public final class SystemServer implements Dumpable {
 
             t.traceBegin("StartCrossProfileAppsService");
             mSystemServiceManager.startService(CrossProfileAppsService.class);
+            t.traceEnd();
+
+            traceBeginAndSlog("StartPocketService");
+            mSystemServiceManager.startService(PocketService.class);
             t.traceEnd();
 
             t.traceBegin("StartPeopleService");
