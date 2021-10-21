@@ -223,6 +223,8 @@ import com.android.server.wm.WindowManagerInternal;
 import com.android.server.wm.WindowManagerInternal.AppTransitionListener;
 import com.android.server.wm.WindowManagerService;
 
+import com.android.internal.util.halcyon.HWUtils;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -649,6 +651,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     // Timeout for showing the keyguard after the screen is on, in case no "ready" is received.
     private int mKeyguardDrawnTimeout = 1000;
 
+    private int mTorchActionMode;
     private static final int MSG_DISPATCH_MEDIA_KEY_WITH_WAKE_LOCK = 3;
     private static final int MSG_DISPATCH_MEDIA_KEY_REPEAT_WITH_WAKE_LOCK = 4;
     private static final int MSG_KEYGUARD_DRAWN_COMPLETE = 5;
@@ -823,6 +826,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.VOLUME_ROCKER_WAKE), false, this,
                     UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.TORCH_POWER_BUTTON_GESTURE), false, this,
+                    UserHandle.USER_ALL);
             updateSettings();
         }
 
@@ -973,7 +979,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 || handledByPowerManager || mKeyCombinationManager.isPowerKeyIntercepted();
         if (!mPowerKeyHandled) {
             if (!interactive) {
-                wakeUpFromPowerKey(event.getDownTime());
+                if (mTorchActionMode == 0) {
+                    wakeUpFromPowerKey(event.getDownTime());
+                }
             }
         } else {
             // handled by another power key policy.
@@ -1014,12 +1022,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         if (count == 1) {
             mSideFpsEventHandler.notifyPowerPressed();
         }
-        if (mDefaultDisplayPolicy.isScreenOnEarly() && !mDefaultDisplayPolicy.isScreenOnFully()) {
-            Slog.i(TAG, "Suppressed redundant power key press while "
-                    + "already in the process of turning the screen on.");
-            return;
-        }
-
         final boolean interactive = Display.isOnState(mDefaultDisplay.getState());
 
         Slog.d(TAG, "powerPress: eventTime=" + eventTime + " interactive=" + interactive
@@ -1088,6 +1090,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     break;
                 }
             }
+        } else if (mTorchActionMode != 0 && beganFromNonInteractive) {
+            wakeUpFromPowerKey(eventTime);
         }
     }
 
@@ -1253,7 +1257,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         if (mTriplePressOnPowerBehavior != MULTI_PRESS_POWER_NOTHING) {
             return 3;
         }
-        if (mDoublePressOnPowerBehavior != MULTI_PRESS_POWER_NOTHING) {
+        if (mDoublePressOnPowerBehavior != MULTI_PRESS_POWER_NOTHING ||
+                mTorchActionMode == 1) {
             return 2;
         }
         return 1;
@@ -2424,10 +2429,13 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
         @Override
         void onLongPress(long eventTime) {
-            if (mSingleKeyGestureDetector.beganFromNonInteractive()
-                    && !mSupportLongPressPowerWhenNonInteractive) {
-                Slog.v(TAG, "Not support long press power when device is not interactive.");
-                return;
+            if (mSingleKeyGestureDetector.beganFromNonInteractive()) {
+                if (handleTorchPress(true))
+                    return;
+                if (!mSupportLongPressPowerWhenNonInteractive) {
+                    Slog.v(TAG, "Not support long press power when device is not interactive.");
+                    return;
+                }
             }
 
             powerLongPress(eventTime);
@@ -2441,8 +2449,29 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
         @Override
         void onMultiPress(long downTime, int count) {
+            if (mSingleKeyGestureDetector.beganFromNonInteractive()) {
+                if (handleTorchPress(false)) {
+                    mSingleKeyGestureDetector.reset();
+                    return;
+                }
+            }
             powerPress(downTime, count, mSingleKeyGestureDetector.beganFromNonInteractive());
         }
+    }
+
+    public boolean handleTorchPress(boolean longpress) {
+        if (mTorchActionMode == 2 && longpress) {
+            performHapticFeedback(HapticFeedbackConstants.LONG_PRESS, false,
+                    "Power - Long Press - Torch");
+            HWUtils.toggleCameraFlash();
+            return true;
+        } else if (mTorchActionMode == 1 && !longpress) {
+            performHapticFeedback(HapticFeedbackConstants.LONG_PRESS, false,
+                      "Power - Double Press - Torch");
+            HWUtils.toggleCameraFlash();
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -2649,6 +2678,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             mVolBtnMusicControls = Settings.System.getIntForUser(resolver,
                     Settings.System.VOLBTN_MUSIC_CONTROLS, 0,
                     UserHandle.USER_CURRENT) == 1;
+            mTorchActionMode = Settings.System.getIntForUser(resolver,
+                    Settings.System.TORCH_POWER_BUTTON_GESTURE,
+                            0, UserHandle.USER_CURRENT);
         }
         if (updateRotation) {
             updateRotation(true);
@@ -4363,7 +4395,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             return;
         }
 
-        if (event.getKeyCode() == KEYCODE_POWER && event.getAction() == KeyEvent.ACTION_DOWN) {
+        if (event.getKeyCode() == KEYCODE_POWER && event.getAction() == KeyEvent.ACTION_DOWN
+                && mTorchActionMode != 1) {
             mPowerKeyHandled = handleCameraGesture(event, interactive);
             if (mPowerKeyHandled) {
                 // handled by camera gesture.
