@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.android.theme.icon_pack.oos.android"
+    package="com.android.theme.icon_pack.oos.themepicker"
     android:versionCode="1"
     android:versionName="1.0">
-    <overlay android:targetPackage="android" android:category="android.theme.customization.icon_pack.android" android:priority="1"/>
+    <overlay android:targetPackage="com.google.android.apps.wallpaper" android:category="android.theme.customization.icon_pack.themepicker" android:priority="1"/>
     <application android:label="Oxygen" android:hasCode="false"/>
 </manifest>
