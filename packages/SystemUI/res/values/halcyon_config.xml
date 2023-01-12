@@ -25,7 +25,6 @@
     <!-- Udfps display mode provider class name -->
     <string name="config_udfpsDisplayModeProviderComponent">com.android.systemui.biometrics.DummyUdfpsDisplayModeProvider</string>
 
-
     <!-- Color of the UDFPS pressed view -->
     <color name="config_udfpsColor">#ffffffff</color>
 
@@ -38,5 +37,8 @@
 
     <!-- Whether to enable lock screen quick affordances -->
     <bool name="flag_enable_customizable_lock_screen_quick_affordances">true</bool>
+
+    <!-- Update battery info every second when device is charging -->
+    <bool name="config_alternateFastchargeInfoUpdate">false</bool>
 
 </resources>
