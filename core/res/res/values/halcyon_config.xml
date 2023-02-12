@@ -36,4 +36,7 @@
         <item>@string/face_unlock_disabled_idle</item>
     </string-array>
 
+    <!-- Boost Framework -->
+    <bool name="config_supportsBoostFramework">false</bool>
+
 </resources>
