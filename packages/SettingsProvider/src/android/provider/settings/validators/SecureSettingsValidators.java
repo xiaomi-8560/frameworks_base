@@ -418,5 +418,6 @@ public class SecureSettingsValidators {
         VALIDATORS.put(Secure.BERRY_BLACK_THEME, BOOLEAN_VALIDATOR);
         VALIDATORS.put(Secure.STATUS_BAR_CLOCK_POSITION, BOOLEAN_VALIDATOR);
         VALIDATORS.put(Secure.GESTURE_NAVBAR_LENGTH_MODE, new InclusiveIntegerRangeValidator(0, 2));
+        VALIDATORS.put(Secure.HIDE_DEVELOPER_STATUS, ANY_STRING_VALIDATOR);
     }
 }
