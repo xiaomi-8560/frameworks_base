@@ -46,13 +46,6 @@
     <string-array name="config_cameraHFRPrivAppList" translatable="false" />
 
 
-    <!-- Device model (Build.MODEL) to spoof for netflix, if not empty -->
-    <java-symbol type="string" name="config_netflixSpoofModel" />
-
-    <!-- AttestationHooks -->
-    <java-symbol type="array" name="config_certifiedBuildProperties" />
-    <java-symbol type="string" name="config_stockFingerprint" />
-
     <!-- Define device configs on boot -->
     <string-array name="global_device_configs_override" translatable="false">
     </string-array>
