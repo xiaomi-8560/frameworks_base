@@ -155,7 +155,7 @@ public class TunerServiceImpl extends TunerService {
             }
         }
         if (oldVersion < 5) {
-            setTunerEnabled(true);
+            setTunerEnabled(false);
         }
         setValue(TUNER_VERSION, newVersion);
     }
